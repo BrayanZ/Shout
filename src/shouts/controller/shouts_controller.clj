@@ -1,6 +1,6 @@
 (ns shouts.controller.shouts-controller
   (:use
-    [compojure.core :only (defroutes GET POST)]
+    [compojure.core :only (defroutes GET POST context)]
     [compojure.route :only (not-found)]
     [joodo.middleware.view-context :only (wrap-view-context)]
     [joodo.views :only (render-template render-html)]
@@ -11,17 +11,17 @@
     ))
 
 
-(defn- render-index []
+(defn- do-index []
   (let [shouts (interactor/find_all)
         formatted_shouts (presenter/get_formatted_list_of_shouts shouts)]
     (render-template "shouts/index" :presenter formatted_shouts)))
 
-(defn- render-show [key]
+(defn- do-show [key]
   (let [shout (interactor/find_by_key key)
         formatted_shout (presenter/get_formatted_shout shout)]
     (render-template "shouts/show" :presenter formatted_shout)))
 
-(defn- render-new
+(defn- do-new
   ([] (render-template "shouts/new"))
   ([shout user] 
    (let [created_shout (interactor/create shout user)]
@@ -31,8 +31,9 @@
 )
 
 (defroutes shouts-controller
-           (GET "/shouts" [] (render-index))
-           (GET "/shouts/new" [] (render-new))
-           (POST "/shouts/new" {params :params} (render-new (params :shout) (params :user)))
-           (GET "/shouts/:key" [key] (render-show key))
+           (GET "/shouts" [] (do-index))
+           (context "/shouts" []
+                    (GET "/new" [] (do-new))
+                    (POST "/new" {params :params} (do-new (params :shout) (params :user)))
+                    (GET "/:key" [key] (do-show key)))
 )

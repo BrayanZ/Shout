@@ -11,8 +11,7 @@
 
   (it "handles home page"
     (let [result (do-get "/")]
-      (should= 200 (:status result))
-      (should= "index" @rendered-template)))
+      (should= 302 (:status result))))
   )
 
 (run-specs)
